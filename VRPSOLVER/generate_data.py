@@ -3,7 +3,7 @@ import numpy as np
 
 def generate_data(N):
     # Définir le nombre de lignes (locations) N
-    N = 25
+    #N = 25
 
     # Générer des données aléatoires pour les colonnes
     locations = [f'{i+1}' for i in range(N)]

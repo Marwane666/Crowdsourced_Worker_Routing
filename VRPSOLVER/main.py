@@ -1,12 +1,14 @@
 #import libraries
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from generate_data import generate_data
+from ortools.linear_solver import pywraplp
 
-class Node:
-    def __init__(self, x, y, demand):
-        self.x = x
-        self.y = y
-        self.demand = demand
+
+
+generate_data(25)
+
 
 def read_excel_file(filename, sheet_name):
     """
@@ -14,10 +16,35 @@ def read_excel_file(filename, sheet_name):
     Assumes the data is in columns labeled 'X', 'Y', and 'Demand'.
     """
     df = pd.read_excel(filename, sheet_name=sheet_name)
-    coordinates = df[['X', 'Y']].values
+    nodes = df[['X', 'Y']].values
     demands = df['Demand'].values
-    return coordinates, demands
+    return nodes, demands
 
+class Node:
+    def __init__(self, index, x, y, demand):
+        self.index = index
+        self.x = x
+        self.y = y
+        self.demand = demand
+
+class Vehicle:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.current_load = 0
+
+    def can_accommodate(self, demand):
+        return self.current_load + demand <= self.capacity
+
+
+
+
+def calculate_distance(point1, point2):
+    """
+    Calculate the Euclidean distance between two points.
+    """
+    x1, y1 = point1
+    x2, y2 = point2
+    return np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
 def calculate_distance_matrix(coordinates):
     """
@@ -28,18 +55,11 @@ def calculate_distance_matrix(coordinates):
 
     for i in range(num_points):
         for j in range(num_points):
-            dist_matrix[i, j] = calculate_distance(coordinates, i, j)
+            dist_matrix[i, j] = calculate_distance(coordinates[i], coordinates[j])
 
     return dist_matrix
 
 
-def calculate_distance(coordinates, i, j):
-    """
-    Calculate the Euclidean distance between two points.
-    """
-    x1, y1 = coordinates[i]
-    x2, y2 = coordinates[j]
-    return np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
 
 def calculate_total_distance(route, dist_matrix):
@@ -93,12 +113,7 @@ def nearest_neighbor(dist_matrix, demands, capacity):
     return routes
 
 
-def format_output(routes):
-    """
-    Format the final routes as required.
-    In this example, it returns a list of routes.
-    """
-    return routes
+
 
 
 def vrp_solver(filename, sheet_name, capacity):
@@ -106,18 +121,45 @@ def vrp_solver(filename, sheet_name, capacity):
     Solve the VRP using the provided filename for coordinates and vehicle capacity.
     """
     coordinates, demands = read_excel_file(filename, sheet_name)
+    nodes = [Node(index, coord[0], coord[1], demand) for index, (coord, demand) in enumerate(zip(coordinates, demands))]
     dist_matrix = calculate_distance_matrix(coordinates)
     routes = nearest_neighbor(dist_matrix, demands, capacity)
-    formatted_routes = format_output(routes)
+    formatted_routes = format_output(routes, nodes)
     return formatted_routes
 
-#Use nearest neighbor
-filename = r"C:\\Users\\KASSA\\Documents\\scientifique\\VRPSOLVER\\data.xlsx" #Copy file path
-sheet_name = "Sheet1"  # Specify the name of the sheet or its index
-capacity = 2010 # Specify the capacity of the vehicle
+
+def format_output(routes, nodes):
+    """
+    Format the final routes as required.
+    In this example, it returns a list of routes.
+    """
+    formatted_routes = []
+    for route in routes:
+        formatted_route = [(nodes[i].x, nodes[i].y) for i in route]
+        formatted_routes.append(formatted_route)
+    return formatted_routes
+
+
+filename = r"C:\\Users\\KASSA\\Documents\\scientifique\\VRPSOLVER\\data.xlsx"
+sheet_name = "Sheet1"
+capacity = 2010
+def plot_routes(routes):
+    """
+    Plot the routes on a 2D graph.
+    """
+    for route in routes:
+        x = [point[0] for point in route]
+        y = [point[1] for point in route]
+        plt.plot(x, y, marker='o', linestyle='-')
+
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.title('VRP Solution')
+    plt.show()
+
+
+
+# Ensure demands is defined
 solution = vrp_solver(filename, sheet_name, capacity)
-
-for route in solution:
-    print(route)
-
-    
+print(solution)
+plot_routes(solution)
