@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 
 # Définition des paramètres
 n_nodes = 80  # Nombre de nœuds
-n_depots = 10  # Nombre de dépôts
-n_vehicles = 5  # Nombre de véhicules (réduit pour correspondre aux dépôts)
+n_depots = 8  # Nombre de dépôts
+n_vehicles = 6  # Nombre de véhicules (réduit pour correspondre aux dépôts)
 capacity = 100  # Capacité des véhicules
 max_time = 350  # Durée maximale d'un trajet
 max_customers = 8  # Nombre maximal de clients par dépôt
@@ -88,13 +88,18 @@ for it in range(100):
 print(solution)
 print(objective_function(solution))
 
+# Nombre de commandes, de dépôts et de livreurs
+n_commandes = n_nodes - n_depots  # Nombre de commandes
+n_depo = n_depots  # Nombre de dépôts
+n_livreurs = n_vehicles  # Nombre de livreurs
+
 # Carte des nœuds et des dépôts
 plt.figure(figsize=(10, 8))
-plt.scatter(nodes[:, 0], nodes[:, 1], c='b', label='Clients', marker='o', s=50)
-plt.scatter(nodes[depots, 0], nodes[depots, 1], c='r', label='Dépôts', marker='s', s=100)
+plt.scatter(nodes[:, 0], nodes[:, 1], c='b', label=f'Clients ({n_commandes})', marker='o', s=50)
+plt.scatter(nodes[depots, 0], nodes[depots, 1], c='r', label=f'Dépôts ({n_depo})', marker='s', s=100)
 plt.xlabel('Coordonnée X')
 plt.ylabel('Coordonnée Y')
-plt.title('Carte des nœuds et des dépôts')
+plt.title(f'Affectation avec une résolution vrp simple ({n_livreurs} livreurs)')
 plt.legend()
 plt.grid(True)
 
@@ -106,22 +111,22 @@ for i in range(n_vehicles):
     plt.plot(x, y, linestyle='-', marker='o', markersize=8, label=f'Véhicule {i+1}')
 plt.legend()
 
-# Capacité des véhicules
-plt.figure(figsize=(6, 6))
-demand_per_vehicle = np.array([np.sum(demand[solution[i, :]]) for i in range(n_vehicles)])
-plt.pie(demand_per_vehicle, labels=[f'Véhicule {i+1}' for i in range(n_vehicles)], autopct='%1.1f%%')
-plt.title('Capacité des véhicules')
-plt.axis('equal')
+# # Capacité des véhicules
+# plt.figure(figsize=(6, 6))
+# demand_per_vehicle = np.array([np.sum(demand[solution[i, :]]) for i in range(n_vehicles)])
+# plt.pie(demand_per_vehicle, labels=[f'Véhicule {i+1}' for i in range(n_vehicles)], autopct='%1.1f%%')
+# plt.title('Capacité des véhicules')
+# plt.axis('equal')
 
-# Temps de trajet
-total_time_per_vehicle = np.zeros(n_vehicles)
-for i in range(n_vehicles):
-    total_time_per_vehicle[i] = np.sum(distances[solution[i, :-1], solution[i, 1:]]) / max_speed
-plt.figure()
-plt.bar(range(n_vehicles), total_time_per_vehicle)
-plt.xlabel('Véhicule')
-plt.ylabel('Temps de trajet')
-plt.title('Temps de trajet par véhicule')
+# # Temps de trajet
+# total_time_per_vehicle = np.zeros(n_vehicles)
+# for i in range(n_vehicles):
+#     total_time_per_vehicle[i] = np.sum(distances[solution[i, :-1], solution[i, 1:]]) / max_speed
+# plt.figure()
+# plt.bar(range(n_vehicles), total_time_per_vehicle)
+# plt.xlabel('Véhicule')
+# plt.ylabel('Temps de trajet')
+# plt.title('Temps de trajet par véhicule')
 
 # Distance totale
 total_distance = objective_function(solution)
